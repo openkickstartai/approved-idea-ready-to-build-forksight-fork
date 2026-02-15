@@ -5,7 +5,10 @@ import requests
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+from analyzer import analyze_diff
+
 REPO_PATTERN = re.compile(r"^[a-zA-Z0-9\-_.]+/[a-zA-Z0-9\-_.]+$")
+
 
 
 def validate_repo(repo_str: str) -> Tuple[str, str]:
@@ -20,9 +23,6 @@ def validate_repo(repo_str: str) -> Tuple[str, str]:
     if not REPO_PATTERN.match(repo_str):
         raise ValueError(f"Invalid format: '{repo_str}'. Use 'owner/repo'")
     owner, repo = repo_str.split("/", 1)
-    return owner, repo
-
-
 @dataclass
 class ForkInsight:
     """Analysis result for a single fork."""
@@ -30,6 +30,12 @@ class ForkInsight:
     owner: str
     ahead_by: int
     behind_by: int
+    unique_commits: int
+    url: str
+    updated_at: str
+    significance_score: Optional[int] = None
+    diff_analysis: Optional[dict] = None
+
     unique_commits: int
     url: str
     updated_at: str
