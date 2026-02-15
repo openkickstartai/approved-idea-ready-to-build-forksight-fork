@@ -5,7 +5,7 @@ import json
 import sys
 
 from scanner import GitHubScanner
-from reporter import to_json, to_markdown
+from config import get_token, validate_token_format, mask_token
 
 
 def main():
@@ -17,8 +17,7 @@ def main():
     parser.add_argument("--max-forks", type=int, default=30, help="Max forks to scan (1-200)")
     parser.add_argument("--min-ahead", type=int, default=1, help="Min commits ahead to report")
     parser.add_argument("--json", action="store_true", dest="json_out", help="JSON output")
-    parser.add_argument("--token", default=None, help="GitHub token (or set GITHUB_TOKEN env)")
-    parser.add_argument("--output-file", default=None, help="Output file path (.json or .md)")
+    parser.add_argument("--token", default=None, help="GitHub token (or set FORKSIGHT_TOKEN env / .env)")
     args = parser.parse_args()
 
     if not 1 <= args.max_forks <= 200:
@@ -27,6 +26,13 @@ def main():
     if args.min_ahead < 0:
         print("Error: --min-ahead must be non-negative", file=sys.stderr)
         sys.exit(1)
+
+    token = get_token(cli_token=args.token)
+    if token and not validate_token_format(token):
+        print(f"Warning: token {mask_token(token)} may not be a valid GitHub PAT", file=sys.stderr)
+
+    scanner = GitHubScanner(token=token)
+
 
     scanner = GitHubScanner(token=args.token)
     try:
